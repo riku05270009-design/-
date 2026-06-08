@@ -4,10 +4,10 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/api/:splat"
+  to = "/.netlify/functions/api"
   status = 200
 
 [[redirects]]
   from = "/uploads/*"
-  to = "/.netlify/functions/api/uploads/:splat"
+  to = "/.netlify/functions/api"
   status = 200
