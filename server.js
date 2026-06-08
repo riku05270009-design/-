@@ -14,17 +14,25 @@ if (fs.existsSync(envPath)) {
   });
 }
 
+const crypto = require('crypto');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-const AUTH_PASSWORD = (
-  process.env.AUTH_PASSWORD ||
-  process.env['認証パスワード'] ||
-  ''
-).trim();
+
+function getPasswordHash() {
+  try {
+    const authConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'auth.json'), 'utf8'));
+    return authConfig.passwordHash;
+  } catch { return ''; }
+}
+
+function hashPassword(pw) {
+  return crypto.createHash('sha256').update(pw).digest('hex');
+}
 
 function requireAuth(req, res, next) {
   const token = req.headers['x-auth-token'];
-  if (token === AUTH_PASSWORD) return next();
+  if (token && token === getPasswordHash()) return next();
   res.status(401).json({ error: '認証が必要です' });
 }
 
@@ -89,14 +97,17 @@ async function fetchUSDJPY(date) {
 }
 
 // ログイン
-app.get('/api/debug-pw', (req, res) => {
-  res.json({ length: AUTH_PASSWORD.length, isDefault: AUTH_PASSWORD === 'sinagawa5195', first: AUTH_PASSWORD[0] });
+app.get('/api/debug-env', (req, res) => {
+  const keys = Object.keys(process.env).filter(k =>
+    k.toLowerCase().includes('pass') || k.toLowerCase().includes('auth') || k.includes('認証')
+  );
+  res.json({ matchingKeys: keys, hashLoaded: !!getPasswordHash() });
 });
 
 app.post('/api/login', (req, res) => {
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  if (body && body.password === AUTH_PASSWORD) {
-    res.json({ success: true, token: AUTH_PASSWORD });
+  if (body && hashPassword(body.password) === getPasswordHash()) {
+    res.json({ success: true, token: getPasswordHash() });
   } else {
     res.status(401).json({ error: 'パスワードが違います' });
   }
