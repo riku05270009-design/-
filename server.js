@@ -104,7 +104,13 @@ app.get('/api/debug-env', (req, res) => {
   const keys = Object.keys(process.env).filter(k =>
     k.toLowerCase().includes('pass') || k.toLowerCase().includes('auth') || k.includes('認証')
   );
-  res.json({ matchingKeys: keys, hashLoaded: !!getPasswordHash() });
+  const authVal = process.env.AUTH_PASSWORD;
+  res.json({
+    matchingKeys: keys,
+    hashLoaded: !!getPasswordHash(),
+    AUTH_PASSWORD_length: authVal ? authVal.length : 0,
+    AUTH_PASSWORD_set: !!authVal
+  });
 });
 
 app.post('/api/login', (req, res) => {
