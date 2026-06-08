@@ -41,24 +41,27 @@ async function parseBody(event) {
   try { return JSON.parse(raw); } catch { return {}; }
 }
 
-async function fetchUSDJPY(date) {
+async function fetchURL(url, redirects = 5) {
   const https = require('https');
-  const tryFetch = (url) => new Promise((resolve) => {
+  return new Promise((resolve) => {
     const req = https.get(url, (res) => {
+      if ((res.statusCode === 301 || res.statusCode === 302) && res.headers.location && redirects > 0) {
+        return fetchURL(res.headers.location, redirects - 1).then(resolve);
+      }
       let body = '';
       res.on('data', d => body += d);
-      res.on('end', () => {
-        try { resolve(JSON.parse(body)?.rates?.JPY ?? null); } catch { resolve(null); }
-      });
+      res.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve(null); } });
     });
     req.on('error', () => resolve(null));
-    req.setTimeout(5000, () => { req.destroy(); resolve(null); });
+    req.setTimeout(8000, () => { req.destroy(); resolve(null); });
   });
+}
 
-  // 指定日で取得、失敗したら最新レートを使用
-  const rate = await tryFetch(`https://api.frankfurter.app/${date}?from=USD&to=JPY`);
-  if (rate) return rate;
-  return await tryFetch(`https://api.frankfurter.app/latest?from=USD&to=JPY`);
+async function fetchUSDJPY(date) {
+  const data = await fetchURL(`https://api.frankfurter.app/${date}?from=USD&to=JPY`);
+  if (data?.rates?.JPY) return data.rates.JPY;
+  const latest = await fetchURL(`https://api.frankfurter.app/latest?from=USD&to=JPY`);
+  return latest?.rates?.JPY ?? null;
 }
 
 const HEADERS = {
