@@ -88,6 +88,11 @@ async function fetchUSDJPY(date) {
   return json?.rates?.JPY ?? null;
 }
 
+app.get('/api/debug-pw', (req, res) => {
+  const pw = process.env.AUTH_PASSWORD;
+  res.json({ length: pw ? pw.length : 0, set: !!pw });
+});
+
 app.post('/api/login', (req, res) => {
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   const pw = getPassword();
