@@ -22,8 +22,11 @@ const PORT = process.env.PORT || 3000;
 function getPasswordHash() {
   try {
     const authConfig = JSON.parse(fs.readFileSync(path.join(__dirname, 'auth.json'), 'utf8'));
-    return authConfig.passwordHash;
-  } catch { return ''; }
+    if (authConfig.passwordHash) return authConfig.passwordHash;
+  } catch {}
+  const pw = process.env.AUTH_PASSWORD;
+  if (pw) return hashPassword(pw);
+  return '';
 }
 
 function hashPassword(pw) {
