@@ -42,18 +42,23 @@ async function parseBody(event) {
 }
 
 async function fetchUSDJPY(date) {
-  try {
-    const https = require('https');
-    return await new Promise((resolve) => {
-      https.get(`https://api.frankfurter.app/${date}?from=USD&to=JPY`, (res) => {
-        let body = '';
-        res.on('data', d => body += d);
-        res.on('end', () => {
-          try { resolve(JSON.parse(body)?.rates?.JPY ?? null); } catch { resolve(null); }
-        });
-      }).on('error', () => resolve(null));
+  const https = require('https');
+  const tryFetch = (url) => new Promise((resolve) => {
+    const req = https.get(url, (res) => {
+      let body = '';
+      res.on('data', d => body += d);
+      res.on('end', () => {
+        try { resolve(JSON.parse(body)?.rates?.JPY ?? null); } catch { resolve(null); }
+      });
     });
-  } catch { return null; }
+    req.on('error', () => resolve(null));
+    req.setTimeout(5000, () => { req.destroy(); resolve(null); });
+  });
+
+  // 指定日で取得、失敗したら最新レートを使用
+  const rate = await tryFetch(`https://api.frankfurter.app/${date}?from=USD&to=JPY`);
+  if (rate) return rate;
+  return await tryFetch(`https://api.frankfurter.app/latest?from=USD&to=JPY`);
 }
 
 const HEADERS = {
