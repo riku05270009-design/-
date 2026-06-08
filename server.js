@@ -6,6 +6,15 @@ const multer = require('multer');
 const { appendExpense } = require('./sheets');
 
 
+// .env 読み込み
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
+    const m = line.match(/^\s*([^#=]+)=(.*)$/);
+    if (m && !process.env[m[1].trim()]) process.env[m[1].trim()] = m[2].trim();
+  });
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
