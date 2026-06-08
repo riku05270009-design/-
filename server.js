@@ -16,7 +16,7 @@ if (fs.existsSync(envPath)) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'sinagawa5195';
+const AUTH_PASSWORD = (process.env.AUTH_PASSWORD || 'sinagawa5195').trim();
 
 function requireAuth(req, res, next) {
   const token = req.headers['x-auth-token'];
