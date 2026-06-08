@@ -85,6 +85,10 @@ async function fetchUSDJPY(date) {
 }
 
 // ログイン
+app.get('/api/debug-pw', (req, res) => {
+  res.json({ length: AUTH_PASSWORD.length, isDefault: AUTH_PASSWORD === 'sinagawa5195', first: AUTH_PASSWORD[0] });
+});
+
 app.post('/api/login', (req, res) => {
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
   if (body && body.password === AUTH_PASSWORD) {
