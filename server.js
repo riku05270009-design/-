@@ -18,12 +18,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'sinagawa5195';
 
-// セッション管理（トークン方式）
-const sessions = new Set();
-
 function requireAuth(req, res, next) {
   const token = req.headers['x-auth-token'];
-  if (token && sessions.has(token)) return next();
+  if (token === AUTH_PASSWORD) return next();
   res.status(401).json({ error: '認証が必要です' });
 }
 
@@ -88,11 +85,10 @@ async function fetchUSDJPY(date) {
 }
 
 // ログイン
-app.post('/api/login', express.json(), (req, res) => {
-  if (req.body.password === AUTH_PASSWORD) {
-    const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    sessions.add(token);
-    res.json({ success: true, token });
+app.post('/api/login', (req, res) => {
+  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  if (body && body.password === AUTH_PASSWORD) {
+    res.json({ success: true, token: AUTH_PASSWORD });
   } else {
     res.status(401).json({ error: 'パスワードが違います' });
   }
