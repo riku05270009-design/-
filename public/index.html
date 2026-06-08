@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DELA STAFF経理申請</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #1a202c;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+    .nav-link {
+      display: inline-block;
+      margin-bottom: 24px;
+      color: #4a90e2;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .nav-link:hover { text-decoration: underline; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+    }
+    label .required {
+      color: #e53e3e;
+      margin-left: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+      background: #f7fafc;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #4a90e2;
+      background: #fff;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .amount-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .amount-row input {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .currency-toggle {
+      display: flex;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f7fafc;
+      flex-shrink: 0;
+    }
+    .currency-toggle input[type=radio] { display: none; }
+    .currency-toggle label {
+      margin: 0;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #718096;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .currency-toggle input[type=radio]:checked + label {
+      background: #4a90e2;
+      color: #fff;
+    }
+    .currency-toggle label:hover { background: #e2e8f0; }
+    .currency-toggle input[type=radio]:checked + label:hover { background: #357abd; }
+    button[type=submit] {
+      width: 100%;
+      padding: 12px;
+      background: #4a90e2;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button[type=submit]:hover { background: #357abd; }
+    .toast {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .toast.success { background: #c6f6d5; color: #276749; display: block; }
+    .toast.error { background: #fed7d7; color: #9b2c2c; display: block; }
+    .file-drop {
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: border-color 0.2s, background 0.2s;
+      background: #f7fafc;
+      position: relative;
+    }
+    .file-drop:hover, .file-drop.drag-over { border-color: #4a90e2; background: #ebf4ff; }
+    .file-drop input[type=file] { display: none; }
+    .file-drop .drop-label { color: #718096; font-size: 0.88rem; pointer-events: none; }
+    .file-drop .drop-label span { color: #4a90e2; font-weight: 600; }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .file-preview img { height: 48px; border-radius: 4px; object-fit: cover; }
+    .file-preview .file-name { font-size: 0.82rem; color: #4a5568; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-preview .remove-btn { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 1rem; padding: 0 4px; width: auto; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <a class="nav-link" href="/list.html">→ 経費一覧を見る</a>
+    <h1>経費申請フォーム</h1>
+    <p class="subtitle">必須項目を入力して送信してください</p>
+
+    <form id="expenseForm">
+      <label>使用者 <span class="required">*</span></label>
+      <input type="text" name="user" placeholder="例: 山田 太郎" required>
+
+      <label>金額 <span class="required">*</span></label>
+      <div class="amount-row">
+        <input type="number" name="amount" id="amountInput" placeholder="例: 1500" min="0" step="any" required>
+        <div class="currency-toggle">
+          <input type="radio" name="currency" id="cur-jpy" value="JPY" checked>
+          <label for="cur-jpy">円</label>
+          <input type="radio" name="currency" id="cur-usd" value="USD">
+          <label for="cur-usd">USD</label>
+        </div>
+      </div>
+
+      <label>使用日 <span class="required">*</span></label>
+      <input type="date" name="date" required>
+
+      <label>使用内容 <span class="required">*</span></label>
+      <input type="text" name="description" placeholder="例: クライアントとの会食" required>
+
+      <label>経費区分 <span class="required">*</span></label>
+      <select name="category" required>
+        <option value="">選択してください</option>
+        <option>交通費</option>
+        <option>交際費</option>
+        <option>備品・消耗品</option>
+        <option>通信費</option>
+        <option>宿泊費</option>
+        <option>その他</option>
+      </select>
+
+      <label>その他・備考</label>
+      <textarea name="note" placeholder="補足事項があれば入力してください"></textarea>
+
+      <label>領収書（写真・PDF）</label>
+      <div class="file-drop" id="fileDrop">
+        <input type="file" id="receiptFile" accept="image/*,.pdf">
+        <input type="file" id="receiptCamera" accept="image/*" capture="environment" style="display:none">
+        <div class="drop-label" id="dropLabel">
+          ここにファイルをドロップ、または<span>クリックして選択</span><br>
+          <small>JPG・PNG・PDF（最大10MB）</small><br>
+          <button type="button" id="cameraBtn" style="margin-top:8px;padding:6px 16px;background:#4a90e2;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;">📷 カメラで撮影</button>
+        </div>
+        <div class="file-preview" id="filePreview" style="display:none">
+          <img id="previewImg" src="" alt="" style="display:none">
+          <span class="file-name" id="previewName"></span>
+          <button type="button" class="remove-btn" id="removeFile">✕</button>
+        </div>
+      </div>
+
+      <button type="submit">申請する</button>
+      <div class="toast" id="toast"></div>
+    </form>
+  </div>
+
+  <script>
+    // 認証チェック
+    const _token = sessionStorage.getItem('authToken');
+    if (!_token) { location.href = '/login.html'; }
+
+
+    document.querySelector('input[name=date]').valueAsDate = new Date();
+
+    // ファイル選択UI
+    const fileDrop = document.getElementById('fileDrop');
+    const fileInput = document.getElementById('receiptFile');
+    const cameraInput = document.getElementById('receiptCamera');
+    const filePreview = document.getElementById('filePreview');
+    const dropLabel = document.getElementById('dropLabel');
+    const previewImg = document.getElementById('previewImg');
+    const previewName = document.getElementById('previewName');
+    let selectedFile = null;
+
+    fileDrop.addEventListener('click', () => fileInput.click());
+    fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('drag-over'); });
+    fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag-over'));
+    fileDrop.addEventListener('drop', e => {
+      e.preventDefault();
+      fileDrop.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+    cameraInput.addEventListener('change', () => { if (cameraInput.files[0]) setFile(cameraInput.files[0]); });
+    document.getElementById('cameraBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      cameraInput.click();
+    });
+    document.getElementById('removeFile').addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.value = '';
+      cameraInput.value = '';
+      selectedFile = null;
+      filePreview.style.display = 'none';
+      dropLabel.style.display = '';
+      previewImg.style.display = 'none';
+    });
+
+    function setFile(file) {
+      selectedFile = file;
+      previewName.textContent = file.name;
+      filePreview.style.display = 'flex';
+      dropLabel.style.display = 'none';
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => { previewImg.src = e.target.result; previewImg.style.display = ''; };
+        reader.readAsDataURL(file);
+      } else {
+        previewImg.style.display = 'none';
+      }
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const currency = form.currency.value;
+      const rawAmount = form.amount.value;
+      const amount = currency === 'USD' ? `$${rawAmount}` : rawAmount;
+
+      const fd = new FormData();
+      fd.append('user', form.user.value);
+      fd.append('amount', amount);
+      fd.append('date', form.date.value);
+      fd.append('description', form.description.value);
+      fd.append('category', form.category.value);
+      fd.append('note', form.note.value);
+      if (selectedFile) fd.append('receipt', selectedFile);
+
+      try {
+        const res = await fetch('/api/expenses', { method: 'POST', body: fd, headers: { 'x-auth-token': sessionStorage.getItem('authToken') || '' } });
+        const json = await res.json();
+        const toast = document.getElementById('toast');
+        if (res.ok) {
+          toast.textContent = '申請が完了しました！';
+          toast.className = 'toast success';
+          form.reset();
+          document.querySelector('input[name=date]').valueAsDate = new Date();
+          fileInput.value = '';
+          filePreview.style.display = 'none';
+          dropLabel.style.display = '';
+          previewImg.style.display = 'none';
+        } else {
+          toast.textContent = json.error || 'エラーが発生しました';
+          toast.className = 'toast error';
+        }
+        setTimeout(() => { toast.className = 'toast'; }, 4000);
+      } catch {
+        const toast = document.getElementById('toast');
+        toast.textContent = 'サーバーに接続できません';
+        toast.className = 'toast error';
+      }
+    });
+  </script>
+</body>
+</html>

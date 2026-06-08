@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1780892795590,
+    "user": "りく",
+    "amount": "$50",
+    "date": "2026-06-08",
+    "description": "サーバー",
+    "note": "",
+    "category": "通信費",
+    "createdAt": "2026-06-08T04:26:35.590Z",
+    "usdAmount": 50,
+    "usdRate": 159.86,
+    "jpyAmount": 7993
+  },
+  {
+    "id": 1780892822625,
+    "user": "りく",
+    "amount": "$50",
+    "date": "2026-06-07",
+    "description": "サーバー",
+    "note": "",
+    "category": "通信費",
+    "createdAt": "2026-06-08T04:27:02.625Z",
+    "usdAmount": 50,
+    "usdRate": 159.86,
+    "jpyAmount": 7993
+  },
+  {
+    "id": 1780892855402,
+    "user": "りく",
+    "amount": "$50",
+    "date": "2026-06-01",
+    "description": "サーバー",
+    "note": "",
+    "category": "通信費",
+    "createdAt": "2026-06-08T04:27:35.402Z",
+    "usdAmount": 50,
+    "usdRate": 159.49,
+    "jpyAmount": 7975
+  }
+]

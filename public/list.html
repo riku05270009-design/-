@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>経費一覧</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      padding: 32px 20px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    h1 { font-size: 1.5rem; color: #1a202c; }
+    .nav-link {
+      color: #4a90e2;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .nav-link:hover { text-decoration: underline; }
+
+    .summary-cards {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      flex: 1;
+      min-width: 180px;
+    }
+    .summary-card .label { font-size: 0.8rem; color: #718096; margin-bottom: 6px; }
+    .summary-card .value { font-size: 1.6rem; font-weight: 700; color: #2d3748; }
+    .summary-card .value.amount { color: #4a90e2; }
+
+    .filters {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters select, .filters input {
+      padding: 7px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      color: #2d3748;
+      background: #f7fafc;
+    }
+    .filters select:focus, .filters input:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+    .filter-label { font-size: 0.85rem; color: #718096; }
+
+    .table-wrap {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #edf2f7; }
+    th {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #4a5568;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    th:hover { background: #e2e8f0; }
+    td {
+      padding: 11px 14px;
+      font-size: 0.88rem;
+      color: #2d3748;
+      border-top: 1px solid #f0f4f8;
+      vertical-align: middle;
+    }
+    tr:hover td { background: #f7fafc; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #ebf8ff;
+      color: #2b6cb0;
+    }
+    .badge.交通費 { background: #e9f7ef; color: #1e7e34; }
+    .badge.交際費 { background: #fef9e7; color: #9a6700; }
+    .badge.備品・消耗品 { background: #f0e6ff; color: #6b21a8; }
+    .badge.通信費 { background: #e8f4fd; color: #1565c0; }
+    .badge.宿泊費 { background: #fdecea; color: #b71c1c; }
+    .badge.その他 { background: #f2f2f2; color: #555; }
+    .note-cell { color: #718096; font-size: 0.82rem; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .usd-tag { display: block; font-size: 0.75rem; color: #718096; margin-top: 2px; }
+    .receipt-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #e2e8f0; }
+    .receipt-link { font-size: 0.78rem; color: #4a90e2; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+    .receipt-link:hover { text-decoration: underline; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-inner { background: #fff; border-radius: 12px; padding: 16px; max-width: 90vw; max-height: 90vh; position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .modal-inner img { max-width: 80vw; max-height: 75vh; object-fit: contain; border-radius: 6px; }
+    .modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #4a5568; }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #e53e3e;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .delete-btn:hover { background: #fff5f5; }
+    .empty {
+      text-align: center;
+      padding: 48px;
+      color: #a0aec0;
+      font-size: 0.95rem;
+    }
+    .total-row td {
+      font-weight: 700;
+      background: #edf2f7;
+      border-top: 2px solid #cbd5e0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 画像モーダル -->
+  <div class="modal-overlay" id="imgModal">
+    <div class="modal-inner">
+      <button class="modal-close" id="modalClose">✕</button>
+      <img id="modalImg" src="" alt="領収書">
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>経費一覧</h1>
+      <a class="nav-link" href="/">← 申請フォームへ</a>
+    </div>
+
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="label">合計件数</div>
+        <div class="value" id="totalCount">-</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">金額合計（数値のみ集計）</div>
+        <div class="value amount" id="totalAmount">-</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">フィルター件数</div>
+        <div class="value" id="filteredCount">-</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <span class="filter-label">絞り込み:</span>
+      <select id="filterCategory">
+        <option value="">全区分</option>
+        <option>交通費</option>
+        <option>交際費</option>
+        <option>備品・消耗品</option>
+        <option>通信費</option>
+        <option>宿泊費</option>
+        <option>その他</option>
+      </select>
+      <input type="text" id="filterUser" placeholder="使用者で検索">
+      <input type="month" id="filterMonth">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-col="date">使用日 ▲</th>
+            <th data-col="user">使用者</th>
+            <th data-col="amount">金額</th>
+            <th data-col="category">区分</th>
+            <th data-col="description">使用内容</th>
+            <th>その他・備考</th>
+            <th>領収書</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" class="empty">読み込み中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // 認証チェック
+    const _token = sessionStorage.getItem('authToken');
+    if (!_token) { location.href = '/login.html'; }
+
+
+    let allExpenses = [];
+    let sortCol = 'date';
+    let sortAsc = false;
+
+    async function load() {
+      const res = await fetch('/api/expenses', { headers: { 'x-auth-token': sessionStorage.getItem('authToken') || '' } });
+      allExpenses = await res.json();
+      render();
+    }
+
+    function parseAmount(str) {
+      const n = parseFloat(String(str).replace(/[^0-9.]/g, ''));
+      return isNaN(n) ? null : n;
+    }
+
+    function render() {
+      const category = document.getElementById('filterCategory').value;
+      const user = document.getElementById('filterUser').value.toLowerCase();
+      const month = document.getElementById('filterMonth').value;
+
+      let data = allExpenses.filter(e => {
+        if (category && e.category !== category) return false;
+        if (user && !e.user.toLowerCase().includes(user)) return false;
+        if (month && !e.date.startsWith(month)) return false;
+        return true;
+      });
+
+      data.sort((a, b) => {
+        let va = a[sortCol] || '', vb = b[sortCol] || '';
+        if (sortCol === 'amount') {
+          va = parseAmount(va) ?? -Infinity;
+          vb = parseAmount(vb) ?? -Infinity;
+        }
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+      });
+
+      const totalAmountNum = allExpenses.reduce((sum, e) => {
+        const n = e.jpyAmount != null ? e.jpyAmount : parseAmount(e.amount);
+        return sum + (n ?? 0);
+      }, 0);
+      document.getElementById('totalCount').textContent = allExpenses.length + ' 件';
+      document.getElementById('totalAmount').textContent = '¥' + totalAmountNum.toLocaleString();
+      document.getElementById('filteredCount').textContent = data.length + ' 件';
+
+      const tbody = document.getElementById('tableBody');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">データがありません</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(e => `
+        <tr>
+          <td>${e.date}</td>
+          <td>${esc(e.user)}</td>
+          <td>
+            ${e.jpyAmount != null ? `¥${e.jpyAmount.toLocaleString()}` : esc(e.amount)}
+            ${e.jpyAmount != null ? `<span class="usd-tag">${esc(e.amount)} @ ¥${e.usdRate.toFixed(2)}/USD</span>` : ''}
+          </td>
+          <td><span class="badge ${esc(e.category)}">${esc(e.category)}</span></td>
+          <td>${esc(e.description)}</td>
+          <td class="note-cell" title="${esc(e.note)}">${esc(e.note) || '-'}</td>
+          <td>${receiptCell(e)}</td>
+          <td><button class="delete-btn" onclick="deleteEntry(${e.id})">削除</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function receiptCell(e) {
+      if (!e.receipt) return '<span style="color:#cbd5e0">-</span>';
+      if (e.receipt.mimetype.startsWith('image/')) {
+        return `<img class="receipt-thumb" src="${e.receipt.url}" onclick="openModal('${e.receipt.url}')" title="${esc(e.receipt.originalName)}">`;
+      }
+      return `<a class="receipt-link" href="${e.receipt.url}" target="_blank">📄 ${esc(e.receipt.originalName)}</a>`;
+    }
+
+    function openModal(src) {
+      document.getElementById('modalImg').src = src;
+      document.getElementById('imgModal').classList.add('open');
+    }
+    document.getElementById('modalClose').addEventListener('click', () => document.getElementById('imgModal').classList.remove('open'));
+    document.getElementById('imgModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+    function esc(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('この経費を削除しますか？')) return;
+      await fetch('/api/expenses/' + id, { method: 'DELETE', headers: { 'x-auth-token': sessionStorage.getItem('authToken') || '' } });
+      await load();
+    }
+
+    document.querySelectorAll('th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (sortCol === col) sortAsc = !sortAsc;
+        else { sortCol = col; sortAsc = true; }
+        render();
+      });
+    });
+
+    ['filterCategory','filterUser','filterMonth'].forEach(id => {
+      document.getElementById(id).addEventListener('input', render);
+    });
+
+    load();
+  </script>
+</body>
+</html>
