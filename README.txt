@@ -2,7 +2,7 @@ DELA STAFF経理申請ツール - サイト情報
 ========================================
 
 【パスワード】
-sinagawa5195
+Railwayの Variables → AUTH_PASSWORD で管理
 
 【ローカルURL】
 申請フォーム : http://localhost:3000
