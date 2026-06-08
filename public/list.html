@@ -218,12 +218,14 @@
   <script>
 
 
+    if (!sessionStorage.getItem('authToken')) location.href = '/login.html';
+
     let allExpenses = [];
     let sortCol = 'date';
     let sortAsc = false;
 
     async function load() {
-      const res = await fetch('/api/expenses', {});
+      const res = await fetch('/api/expenses', { headers: { 'x-auth-token': sessionStorage.getItem('authToken') || '' } });
       allExpenses = await res.json();
       render();
     }

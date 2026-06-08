@@ -17,6 +17,17 @@ if (fs.existsSync(envPath)) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function getPassword() {
+  return process.env.AUTH_PASSWORD || '';
+}
+
+function requireAuth(req, res, next) {
+  const token = req.headers['x-auth-token'];
+  const pw = getPassword();
+  if (pw && token === pw) return next();
+  res.status(401).json({ error: '認証が必要です' });
+}
+
 const IS_NETLIFY = !!process.env.NETLIFY;
 const DATA_FILE = IS_NETLIFY ? '/tmp/expenses.json' : path.join(__dirname, 'expenses.json');
 const UPLOADS_DIR = IS_NETLIFY ? '/tmp/uploads' : path.join(__dirname, 'uploads');
@@ -77,11 +88,22 @@ async function fetchUSDJPY(date) {
   return json?.rates?.JPY ?? null;
 }
 
-app.get('/api/expenses', (req, res) => {
+app.post('/api/login', (req, res) => {
+  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const pw = getPassword();
+  if (!pw) return res.status(500).json({ error: 'サーバー設定エラー' });
+  if (body && body.password === pw) {
+    res.json({ success: true, token: pw });
+  } else {
+    res.status(401).json({ error: 'パスワードが違います' });
+  }
+});
+
+app.get('/api/expenses', requireAuth, (req, res) => {
   res.json(loadExpenses());
 });
 
-app.post('/api/expenses', upload.single('receipt'), async (req, res) => {
+app.post('/api/expenses', requireAuth, upload.single('receipt'), async (req, res) => {
   const { user, amount, date, description, note, category } = req.body;
   if (!user || !amount || !date || !description || !category) {
     if (req.file) fs.unlinkSync(req.file.path);
@@ -122,7 +144,7 @@ app.post('/api/expenses', upload.single('receipt'), async (req, res) => {
   res.json({ success: true, entry: newEntry });
 });
 
-app.delete('/api/expenses/:id', (req, res) => {
+app.delete('/api/expenses/:id', requireAuth, (req, res) => {
   const id = Number(req.params.id);
   const expenses = loadExpenses();
   const target = expenses.find(e => e.id === id);
