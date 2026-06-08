@@ -157,6 +157,10 @@ app.delete('/api/expenses/:id', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`経費管理ツール起動中: http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`経費管理ツール起動中: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

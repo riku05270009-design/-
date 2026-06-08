@@ -1,0 +1,7 @@
+node_modules/
+uploads/
+expenses.json
+google-credentials.json
+.env
+.sheet_id
+.form_id
