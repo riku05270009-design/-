@@ -16,7 +16,7 @@ if (fs.existsSync(envPath)) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'expense2024';
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'sinagawa5195';
 
 // セッション管理（トークン方式）
 const sessions = new Set();
@@ -27,10 +27,11 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: '認証が必要です' });
 }
 
-const DATA_FILE = path.join(__dirname, 'expenses.json');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const IS_NETLIFY = !!process.env.NETLIFY;
+const DATA_FILE = IS_NETLIFY ? '/tmp/expenses.json' : path.join(__dirname, 'expenses.json');
+const UPLOADS_DIR = IS_NETLIFY ? '/tmp/uploads' : path.join(__dirname, 'uploads');
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
