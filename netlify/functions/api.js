@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'sinagawa5195';
 const DATA_FILE = '/tmp/expenses.json';
 
 function loadExpenses() {
@@ -77,27 +76,13 @@ exports.handler = async (event) => {
 
   if (method === 'OPTIONS') return { statusCode: 200, headers: HEADERS, body: '' };
 
-  const token = event.headers['x-auth-token'] || event.headers['X-Auth-Token'] || '';
-  const isAuthed = token === AUTH_PASSWORD;
-
-  // POST /api/login
-  if (method === 'POST' && p.includes('/api/login')) {
-    const body = await parseBody(event);
-    if (body.password === AUTH_PASSWORD) {
-      return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ success: true, token: AUTH_PASSWORD }) };
-    }
-    return { statusCode: 401, headers: HEADERS, body: JSON.stringify({ error: 'パスワードが違います' }) };
-  }
-
   // GET /api/expenses
   if (method === 'GET' && p.includes('/api/expenses') && !p.match(/\/api\/expenses\/\d/)) {
-    if (!isAuthed) return { statusCode: 401, headers: HEADERS, body: JSON.stringify({ error: '認証が必要です' }) };
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify(loadExpenses()) };
   }
 
   // POST /api/expenses
   if (method === 'POST' && p.includes('/api/expenses')) {
-    if (!isAuthed) return { statusCode: 401, headers: HEADERS, body: JSON.stringify({ error: '認証が必要です' }) };
     const body = await parseBody(event);
     const { user, amount, date, description, note, category } = body;
     if (!user || !amount || !date || !description || !category) {
@@ -121,7 +106,6 @@ exports.handler = async (event) => {
 
   // DELETE /api/expenses/:id
   if (method === 'DELETE' && p.includes('/api/expenses/')) {
-    if (!isAuthed) return { statusCode: 401, headers: HEADERS, body: JSON.stringify({ error: '認証が必要です' }) };
     const id = Number(p.split('/').pop());
     saveExpenses(loadExpenses().filter(e => e.id !== id));
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ success: true }) };
