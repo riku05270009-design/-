@@ -147,6 +147,48 @@
       background: #edf2f7;
       border-top: 2px solid #cbd5e0;
     }
+
+    @media (max-width: 640px) {
+      body { padding: 16px 12px; }
+      h1 { font-size: 1.2rem; }
+      .summary-card { padding: 14px 16px; min-width: 140px; }
+      .summary-card .value { font-size: 1.3rem; }
+      .filters { gap: 8px; padding: 12px; }
+      .filters select, .filters input { font-size: 0.82rem; padding: 6px 8px; width: 100%; }
+      .filter-label { width: 100%; }
+
+      /* テーブルをカード形式に */
+      .table-wrap { overflow: visible; background: transparent; box-shadow: none; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        margin-bottom: 12px;
+        padding: 12px 14px;
+      }
+      tr:hover td { background: transparent; }
+      td {
+        padding: 4px 0;
+        border: none;
+        font-size: 0.88rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      td::before {
+        content: attr(data-label);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #a0aec0;
+        min-width: 72px;
+        flex-shrink: 0;
+      }
+      td:last-child { justify-content: flex-end; margin-top: 4px; }
+      .note-cell { white-space: normal; max-width: none; }
+      .total-row { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -274,16 +316,16 @@
 
       tbody.innerHTML = data.map(e => `
         <tr>
-          <td>${e.date}</td>
-          <td>${esc(e.user)}</td>
-          <td>
+          <td data-label="使用日">${e.date}</td>
+          <td data-label="使用者">${esc(e.user)}</td>
+          <td data-label="金額">
             ${e.jpyAmount != null ? `¥${e.jpyAmount.toLocaleString()}` : esc(e.amount)}
             ${e.jpyAmount != null ? `<span class="usd-tag">${esc(e.amount)} @ ¥${e.usdRate.toFixed(2)}/USD</span>` : ''}
           </td>
-          <td><span class="badge ${esc(e.category)}">${esc(e.category)}</span></td>
-          <td>${esc(e.description)}</td>
-          <td class="note-cell" title="${esc(e.note)}">${esc(e.note) || '-'}</td>
-          <td>${receiptCell(e)}</td>
+          <td data-label="区分"><span class="badge ${esc(e.category)}">${esc(e.category)}</span></td>
+          <td data-label="内容">${esc(e.description)}</td>
+          <td data-label="備考" class="note-cell" title="${esc(e.note)}">${esc(e.note) || '-'}</td>
+          <td data-label="領収書">${receiptCell(e)}</td>
           <td><button class="delete-btn" onclick="deleteEntry(${e.id})">削除</button></td>
         </tr>
       `).join('');

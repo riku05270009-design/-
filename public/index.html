@@ -153,6 +153,16 @@
     .file-preview img { height: 48px; border-radius: 4px; object-fit: cover; }
     .file-preview .file-name { font-size: 0.82rem; color: #4a5568; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .file-preview .remove-btn { background: none; border: none; color: #e53e3e; cursor: pointer; font-size: 1rem; padding: 0 4px; width: auto; }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .card { padding: 24px 16px; border-radius: 12px; }
+      h1 { font-size: 1.2rem; }
+      input, select, textarea { font-size: 0.9rem; padding: 9px 12px; }
+      .amount-row { gap: 6px; }
+      .currency-toggle label { padding: 0 10px; font-size: 0.85rem; }
+      button[type=submit] { padding: 14px; font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
