@@ -170,23 +170,31 @@
       }
       tr:hover td { background: transparent; }
       td {
-        padding: 4px 0;
+        padding: 5px 0;
         border: none;
         font-size: 0.88rem;
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        align-items: start;
+        gap: 8px;
+        word-break: break-word;
       }
       td::before {
         content: attr(data-label);
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         color: #a0aec0;
-        min-width: 72px;
-        flex-shrink: 0;
+        padding-top: 2px;
       }
-      td:last-child { justify-content: flex-end; margin-top: 4px; }
+      td:last-child {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+        grid-column: 1 / -1;
+      }
+      td:last-child::before { display: none; }
       .note-cell { white-space: normal; max-width: none; }
+      .usd-tag { font-size: 0.72rem; }
       .total-row { display: none; }
     }
   </style>
